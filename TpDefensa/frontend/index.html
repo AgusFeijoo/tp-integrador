@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Control de Vehículos</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="login-page" class="page active">
+        <div class="login-container">
+            <h1>Sistema de Control de Vehículos</h1>
+            <h2>Iniciar Sesión</h2>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Contraseña:</label>
+                    <input type="password" id="password" required>
+                </div>
+                <button type="submit">Iniciar Sesión</button>
+            </form>
+            <div id="login-error" class="error-message"></div>
+            <div class="quick-login">
+                <p>Accesos rápidos:</p>
+                <button onclick="quickLogin('duenio@example.com')">Dueño</button>
+                <button onclick="quickLogin('inspector@example.com')">Inspector</button>
+                <button onclick="quickLogin('admin@example.com')">Admin</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="dashboard-page" class="page">
+        <header>
+            <h1>Sistema de Control de Vehículos</h1>
+            <div class="user-info">
+                <span id="user-name"></span>
+                <span id="user-role"></span>
+                <button onclick="logout()">Cerrar Sesión</button>
+            </div>
+        </header>
+
+        <main>
+            <!-- Dashboard DUENIO -->
+            <div id="duenio-dashboard" class="dashboard-section">
+                <h2>Panel de Dueño</h2>
+                
+                <section class="section">
+                    <h3>Consultar Disponibilidad</h3>
+                    <div class="form-group">
+                        <label for="fecha-disponibilidad">Fecha:</label>
+                        <input type="date" id="fecha-disponibilidad">
+                        <button onclick="consultarDisponibilidad()">Consultar</button>
+                    </div>
+                    <div id="disponibilidad-result" class="result-box"></div>
+                </section>
+
+                <section class="section">
+                    <h3>Mis Vehículos</h3>
+                    <button onclick="cargarVehiculos()">Cargar Mis Vehículos</button>
+                    <div id="mis-vehiculos" class="result-box" style="margin-top: 15px;"></div>
+                </section>
+
+                <section class="section">
+                    <h3>Agregar Vehículo Nuevo</h3>
+                    <div class="form-group">
+                        <label for="nueva-patente">Patente:</label>
+                        <input type="text" id="nueva-patente" placeholder="ABC123" maxlength="10">
+                    </div>
+                    <div class="form-group">
+                        <label for="nueva-marca">Marca:</label>
+                        <input type="text" id="nueva-marca" placeholder="Toyota">
+                    </div>
+                    <div class="form-group">
+                        <label for="nuevo-modelo">Modelo:</label>
+                        <input type="text" id="nuevo-modelo" placeholder="Corolla">
+                    </div>
+                    <div class="form-group">
+                        <label for="nuevo-anio">Año:</label>
+                        <input type="number" id="nuevo-anio" placeholder="2020" min="1900" max="2099">
+                    </div>
+                    <button onclick="crearVehiculo()">Agregar Vehículo</button>
+                    <div id="vehiculo-crear-result" class="result-box"></div>
+                </section>
+
+                <section class="section">
+                    <h3>Solicitar Turno</h3>
+                    <div class="form-group">
+                        <label for="turno-vehiculo">ID Vehículo (UUID):</label>
+                        <input type="text" id="turno-vehiculo" placeholder="Pega aquí el UUID del vehículo (copia desde Mis Vehículos)">
+                        <small style="color: #666; font-size: 12px; display: block; margin-top: 5px;">Copia el ID desde la sección "Mis Vehículos" arriba</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="turno-fecha">Fecha y Hora:</label>
+                        <input type="datetime-local" id="turno-fecha">
+                    </div>
+                    <button onclick="solicitarTurno()">Solicitar Turno</button>
+                    <div id="turno-result" class="result-box"></div>
+                </section>
+
+                <section class="section">
+                    <h3>Mis Turnos</h3>
+                    <button onclick="obtenerMisTurnos()">Cargar Turnos</button>
+                    <div id="mis-turnos" class="result-box"></div>
+                </section>
+            </div>
+
+            <!-- Dashboard INSPECTOR -->
+            <div id="inspector-dashboard" class="dashboard-section">
+                <h2>Panel de Inspector</h2>
+                
+                <section class="section">
+                    <h3>Turnos Pendientes</h3>
+                    <button onclick="cargarTurnosPendientes()">Cargar Turnos Pendientes</button>
+                    <div id="turnos-pendientes" class="result-box" style="margin-top: 15px;"></div>
+                    <div id="confirmar-result" class="result-box" style="margin-top: 15px;"></div>
+                </section>
+
+                <section class="section">
+                    <h3>Turnos Confirmados (para crear chequeo)</h3>
+                    <button onclick="cargarTurnosConfirmados()">Cargar Turnos Confirmados</button>
+                    <div id="turnos-confirmados" class="result-box" style="margin-top: 15px;"></div>
+                    <div id="chequeo-crear-result" class="result-box" style="margin-top: 15px;"></div>
+                </section>
+
+                <section class="section" id="seccion-items" style="display: none;">
+                    <h3>Agregar Ítems al Chequeo</h3>
+                    <div id="agregar-items-container"></div>
+                    <div id="items-result" class="result-box"></div>
+                </section>
+
+                <section class="section" id="seccion-finalizar" style="display: none;">
+                    <h3>Finalizar Chequeo</h3>
+                    <div id="finalizar-chequeo-container"></div>
+                    <div id="finalizar-result" class="result-box"></div>
+                </section>
+
+                <section class="section">
+                    <h3>Chequeos Realizados</h3>
+                    <button onclick="cargarChequeosRealizados()">Cargar Chequeos Realizados</button>
+                    <div id="chequeos-realizados" class="result-box" style="margin-top: 15px;"></div>
+                </section>
+            </div>
+
+            <!-- Dashboard ADMIN -->
+            <div id="admin-dashboard" class="dashboard-section">
+                <h2>Panel de Administrador</h2>
+                <p>El administrador tiene acceso a todas las funcionalidades. Puede usar las secciones del Inspector para confirmar turnos y gestionar chequeos.</p>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal para Detalle de Chequeo -->
+    <div id="modal-detalle-chequeo" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Detalle del Chequeo</h3>
+                <button class="modal-close" onclick="cerrarModalDetalle()">&times;</button>
+            </div>
+            <div class="modal-body" id="modal-detalle-body">
+                <!-- Contenido se llenará dinámicamente -->
+            </div>
+            <div class="modal-footer">
+                <button onclick="cerrarModalDetalle()">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
+

@@ -1,0 +1,104 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RolUsuario {
+  DUENIO
+  INSPECTOR
+  ADMIN
+}
+
+enum EstadoTurno {
+  PENDIENTE
+  CONFIRMADO
+  CANCELADO
+  COMPLETADO
+}
+
+enum EstadoResultado {
+  SEGURO
+  RECHEQUEAR
+}
+
+model Usuario {
+  id            String      @id @default(uuid())
+  nombre        String
+  email         String      @unique
+  passwordHash  String      @map("password_hash")
+  rol           RolUsuario
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+
+  vehiculos     Vehiculo[]
+  chequeos      Chequeo[]
+
+  @@map("usuarios")
+}
+
+model Vehiculo {
+  id        String   @id @default(uuid())
+  patente   String   @unique
+  marca     String
+  modelo    String
+  anio      Int
+  idDuenio  String   @map("id_duenio")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  duenio    Usuario  @relation(fields: [idDuenio], references: [id], onDelete: Cascade)
+  turnos    Turno[]
+
+  @@map("vehiculos")
+}
+
+model Turno {
+  id          String       @id @default(uuid())
+  idVehiculo  String       @map("id_vehiculo")
+  fechaHora   DateTime     @map("fecha_hora")
+  estadoTurno EstadoTurno  @default(PENDIENTE) @map("estado_turno")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  vehiculo    Vehiculo     @relation(fields: [idVehiculo], references: [id], onDelete: Cascade)
+  chequeo     Chequeo?
+
+  @@map("turnos")
+}
+
+model Chequeo {
+  id              String          @id @default(uuid())
+  idTurno         String          @unique @map("id_turno")
+  idInspector     String          @map("id_inspector")
+  estadoResultado EstadoResultado? @map("estado_resultado")
+  totalPuntaje    Int?            @map("total_puntaje")
+  observacion     String?         @db.Text
+  fechaCreacion   DateTime        @default(now()) @map("fecha_creacion")
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+
+  turno           Turno           @relation(fields: [idTurno], references: [id], onDelete: Cascade)
+  inspector       Usuario         @relation(fields: [idInspector], references: [id])
+  puntuaciones    PuntuacionItem[]
+
+  @@map("chequeos")
+}
+
+model PuntuacionItem {
+  id          String   @id @default(uuid())
+  idChequeo   String   @map("id_chequeo")
+  numeroItem  Int      @map("numero_item")
+  puntaje     Int
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  chequeo     Chequeo  @relation(fields: [idChequeo], references: [id], onDelete: Cascade)
+
+  @@unique([idChequeo, numeroItem])
+  @@map("puntuaciones_item")
+}
+
